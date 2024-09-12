@@ -2,6 +2,7 @@ import express from "express";
 import mongoose from "mongoose"; // Change require to import
 import Product from "./models/product.model.js";
 import productRoute from "./routes/product.route.js";
+import userRoute from "./routes/user.route.js";
 
 const app = express();
 
@@ -13,6 +14,9 @@ app.use(express.urlencoded({ extended: false }));
 
 //routes
 app.use("/api/products", productRoute);
+
+//for user
+app.use("/", userRoute);
 
 app.get("/", (req, res) => {
   res.send("Hello from Node API Server");
