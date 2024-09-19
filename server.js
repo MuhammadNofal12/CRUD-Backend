@@ -1,6 +1,6 @@
 import express from "express";
 import mongoose from "mongoose"; // Change require to import
-import Product from "./models/product.model.js";  
+import Product from "./models/product.model.js";
 // import dotenv from "dotenv";
 import cors from "cors";
 import bodyParser from "body-parser";

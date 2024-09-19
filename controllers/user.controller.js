@@ -84,7 +84,8 @@ export const updateUserData = async (req, res) => {
 // Register a new user
 export const registerUser = async (req, res) => {
   try {
-    const { name, email, password } = req.body;
+    const { name, email, userName, password } = req.body;
+    console.log(req.body); // Log the entire request body
 
     // Check if the user already exists
     const userExists = await user.findOne({ email });
@@ -99,6 +100,7 @@ export const registerUser = async (req, res) => {
     const newUser = await user.create({
       name,
       email,
+      userName,
       password: hashedPassword,
     });
     res.status(201).json(newUser);
@@ -128,17 +130,23 @@ export const loginUser = async (req, res) => {
     }
 
     // Generate JWT token
-    const token = jwt.sign(
-      { userId: existingUser._id, email: existingUser.email },
-      process.env.JWT_SECRET,
-      { expiresIn: "1h" }
-    );
     // const token = jwt.sign(
     //   { userId: existingUser._id, email: existingUser.email },
-    //   "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c", // Replace this with an environment variable for security
+    //   process.env.JWT_SECRET,
     //   { expiresIn: "1h" }
     // );
+    const token = jwt.sign(
+      { userId: existingUser._id, email: existingUser.email },
+      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c", // Replace this with an environment variable for security
+      { expiresIn: "1h" }
+    );
 
+    // Set the token in a cookie
+    res.cookie("token", token, {
+      httpOnly: true, // Helps prevent XSS attacks
+      secure: process.env.NODE_ENV === "production", // Set to true in production
+      maxAge: 3600000, // 1 hour in milliseconds
+    });
     // Send response with token
     res.status(200).json({ token, message: "Login successful" });
   } catch (error) {
