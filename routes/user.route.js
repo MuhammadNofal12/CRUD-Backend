@@ -4,13 +4,15 @@ import {
   delUserData,
   getUserById,
   getUsersData,
-  postUserData,
+  loginUser,
+  //   postUserData,
+  registerUser,
   updateUserData,
 } from "../controllers/user.controller.js";
 
 const userRoute = express.Router();
 
-userRoute.post("/createUser", postUserData);
+// userRoute.post("/createUser", postUserData);
 
 //get all users
 userRoute.get("/getUsers", getUsersData);
@@ -23,5 +25,11 @@ userRoute.delete("/delUser/:id", delUserData);
 
 //update User Data
 userRoute.put("/updateUser/:id", updateUserData);
+
+//registerUser
+userRoute.post("/register", registerUser);
+
+// Login user
+userRoute.post("/login", loginUser); // Add this route for user login
 
 export default userRoute;

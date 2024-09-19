@@ -1,6 +1,9 @@
 import express from "express";
 import mongoose from "mongoose"; // Change require to import
-import Product from "./models/product.model.js";
+import Product from "./models/product.model.js";  
+// import dotenv from "dotenv";
+import cors from "cors";
+import bodyParser from "body-parser";
 import productRoute from "./routes/product.route.js";
 import userRoute from "./routes/user.route.js";
 
@@ -8,12 +11,32 @@ const app = express();
 
 //middleware
 app.use(express.json());
+// Middleware
+app.use(cors());
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: true }));
 
 //allowing other data formats  to be sent to the server using postman ...
 app.use(express.urlencoded({ extended: false }));
 
 //routes
 app.use("/api/products", productRoute);
+
+//auth
+//register
+// app.post("/register", (req, res) => {
+//   res.json("register");
+// });
+
+// //login
+// app.post("/login", (req, res) => {
+//   res.json("login");
+// });
+
+// //profile
+// app.get("/profile", (req, res) => {
+//   res.json("profile");
+// });
 
 //for user
 app.use("/", userRoute);

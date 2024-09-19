@@ -1,25 +1,29 @@
 import user from "../models/user.model.js";
+import bcrypt from "bcryptjs";
+import jwt from "jsonwebtoken";
+import dotenv from "dotenv";
+dotenv.config();
 
-export const postUserData = async (req, res) => {
-  try {
-    const { name, userName, email, password } = req.body;
-    console.log(name, userName, email, password);
-    const isEmailExisted = await user.findOne({ email: email });
-    if (isEmailExisted) {
-      return res.status(400).json({ message: "Email already existed" });
-    }
-    const userData = new user({
-      ...req.body,
-    });
-    await userData.save();
+// export const postUserData = async (req, res) => {
+//   try {
+//     const { name, userName, email, password } = req.body;
+//     console.log(name, userName, email, password);
+//     const isEmailExisted = await user.findOne({ email: email });
+//     if (isEmailExisted) {
+//       return res.status(400).json({ message: "Email already existed" });
+//     }
+//     const userData = new user({
+//       ...req.body,
+//     });
+//     await userData.save();
 
-    return res
-      .status(200)
-      .json({ message: "data saved successfully", success: true, userData });
-  } catch (error) {
-    res.status(500).json(error.message);
-  }
-};
+//     return res
+//       .status(200)
+//       .json({ message: "data saved successfully", success: true, userData });
+//   } catch (error) {
+//     res.status(500).json(error.message);
+//   }
+// };
 
 export const getUsersData = async (req, res) => {
   try {
@@ -71,6 +75,72 @@ export const updateUserData = async (req, res) => {
     }
     const updatedUserData = await user.findById(id);
     res.status(200).json(updatedUserData);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+//registerUser
+// Register a new user
+export const registerUser = async (req, res) => {
+  try {
+    const { name, email, password } = req.body;
+
+    // Check if the user already exists
+    const userExists = await user.findOne({ email });
+    if (userExists) {
+      return res.status(400).json({ message: "User already exists" });
+    }
+
+    // Hash password before saving it
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    // Create a new user
+    const newUser = await user.create({
+      name,
+      email,
+      password: hashedPassword,
+    });
+    res.status(201).json(newUser);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// Login a user
+export const loginUser = async (req, res) => {
+  try {
+    const { email, password } = req.body;
+
+    // Check if the user exists
+    const existingUser = await user.findOne({ email });
+    if (!existingUser) {
+      return res.status(400).json({ message: "Invalid email or password" });
+    }
+
+    // Compare the entered password with the hashed password
+    const isPasswordValid = await bcrypt.compare(
+      password,
+      existingUser.password
+    );
+    if (!isPasswordValid) {
+      return res.status(400).json({ message: "Invalid email or password" });
+    }
+
+    // Generate JWT token
+    const token = jwt.sign(
+      { userId: existingUser._id, email: existingUser.email },
+      process.env.JWT_SECRET,
+      { expiresIn: "1h" }
+    );
+    // const token = jwt.sign(
+    //   { userId: existingUser._id, email: existingUser.email },
+    //   "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c", // Replace this with an environment variable for security
+    //   { expiresIn: "1h" }
+    // );
+
+    // Send response with token
+    res.status(200).json({ token, message: "Login successful" });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
